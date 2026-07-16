@@ -6,7 +6,7 @@ import { usePaletteStore } from '@/store/usePaletteStore';
 import { useHydration } from '@/hooks/useHydration';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Lock, Unlock, Eye, RefreshCw, Upload } from 'lucide-react';
+import { Lock, Unlock, RefreshCw, Upload, Sparkles } from 'lucide-react';
 import { hexToOklch } from '@/engines/color/conversions';
 import { extractDominantColors } from '@/engines/image/extractor';
 
@@ -20,6 +20,7 @@ export default function GeneratorPage() {
     setHarmonyType,
     toggleLock,
     updateColor,
+    loadDemoPalette,
     runEnginePipeline,
   } = usePaletteStore();
 
@@ -43,7 +44,6 @@ export default function GeneratorPage() {
   };
 
   const randomizePalette = () => {
-    // Generate a random hex color code
     const randomHex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
     setHexInput(randomHex);
     setSeedColor(randomHex);
@@ -87,7 +87,7 @@ export default function GeneratorPage() {
         {/* Left Side Controls Panel */}
         <aside className="border-r border-zinc-800 bg-zinc-950 p-6 space-y-6 flex flex-col overflow-y-auto">
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider select-none">
               Seed Brand Color
             </label>
             <div className="flex gap-2">
@@ -109,7 +109,7 @@ export default function GeneratorPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider select-none">
               Color Harmony Rule
             </label>
             <select
@@ -127,7 +127,7 @@ export default function GeneratorPage() {
 
           {/* Image Analyzer Dropzone */}
           <div className="space-y-2 border-t border-zinc-800 pt-6">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider select-none">
               Extract from Image
             </label>
             <div className="relative group border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-900/10 rounded-md p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors">
@@ -139,14 +139,14 @@ export default function GeneratorPage() {
                 disabled={isExtracting}
               />
               <Upload className="h-5 w-5 text-zinc-500 group-hover:text-zinc-300 mb-1" />
-              <span className="text-[10px] text-zinc-400">
+              <span className="text-[10px] text-zinc-400 select-none">
                 {isExtracting ? 'Analyzing...' : 'Drop image or click'}
               </span>
             </div>
 
             {extractedColors.length > 0 && (
               <div className="space-y-2 pt-4">
-                <span className="text-[10px] uppercase font-bold text-zinc-500">
+                <span className="text-[10px] uppercase font-bold text-zinc-500 select-none">
                   Extracted Swatches
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -167,9 +167,34 @@ export default function GeneratorPage() {
             )}
           </div>
 
-          <div className="mt-auto p-4 rounded-lg border border-zinc-800 bg-zinc-900/40 text-xs text-zinc-400 leading-relaxed">
-            <p className="font-semibold text-zinc-300 mb-1">Sandbox Guidance</p>
-            Lock swatches to preserve them. Drag values or type hex overrides to modify shades dynamically.
+          {/* Demo Mode Button */}
+          <div className="space-y-2 border-t border-zinc-800 pt-6 select-none">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">
+              Demonstration Suite
+            </label>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={loadDemoPalette}
+              className="w-full text-xs h-9 justify-center gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-brand-primary" /> Load Demo Palette
+            </Button>
+          </div>
+
+          {/* Onboarding & Shortcuts Tour */}
+          <div className="mt-auto p-4 rounded-lg border border-zinc-800 bg-zinc-900/40 text-xs text-zinc-400 space-y-3 leading-relaxed select-none">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-brand-primary" />
+              <p className="font-semibold text-zinc-300">Quick Start Tour & Shortcuts</p>
+            </div>
+            <ul className="list-disc pl-4 space-y-1.5 text-zinc-500">
+              <li><strong>Adjust Seed</strong> to modify hue, or lock swatches to save shades.</li>
+              <li><strong>Simulate Vision</strong> inside Matrix tabs to ensure accessibility.</li>
+              <li>Press <kbd className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 text-[10px]">G</kbd> Generator / <kbd className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 text-[10px]">A</kbd> Analyzer.</li>
+              <li>Press <kbd className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 text-[10px]">P</kbd> Playground / <kbd className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 text-[10px]">E</kbd> Exporters.</li>
+              <li>Press <kbd className="bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-400 text-[10px]">Cmd+K</kbd> to search Command Palette.</li>
+            </ul>
           </div>
         </aside>
 
@@ -180,7 +205,7 @@ export default function GeneratorPage() {
               <h2 className="text-lg font-semibold tracking-tight text-zinc-100">
                 Workspace Swatches
               </h2>
-              <span className="text-xs text-zinc-500 font-mono">
+              <span className="text-xs text-zinc-500 font-mono select-none">
                 OKLCH Lightness scale verified
               </span>
             </div>

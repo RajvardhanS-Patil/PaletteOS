@@ -47,6 +47,7 @@ export interface PaletteStore {
   setReviewStatus: (status: 'Draft' | 'In Review' | 'Approved') => void;
   setProjectNotes: (notes: string) => void;
   importPaletteColors: (colors: string[]) => void;
+  loadDemoPalette: () => void;
   runEnginePipeline: () => void;
 }
 
@@ -217,21 +218,32 @@ export const usePaletteStore = create<PaletteStore>()(
       setProjectNotes: (projectNotes) => set({ projectNotes }),
       
       importPaletteColors: (colors) => {
-        // Map imported array of hex strings up to 11 slots
         const newPalette = colors.map((hex, i) => {
           const isLocked = get().palette[i]?.isLocked ?? false;
           return { hex: normalizeHex(hex), isLocked };
         });
         
-        // If array size matches less than 11, backfill with existing palette colors
         while (newPalette.length < 11) {
           const backfillIdx = newPalette.length;
           newPalette.push(get().palette[backfillIdx] || { hex: '#3b82f6', isLocked: false });
         }
 
-        // Limit exactly to 11 swatches
         const finalPalette = newPalette.slice(0, 11);
         set({ palette: finalPalette, seedColor: finalPalette[5]?.hex || finalPalette[0].hex });
+        get().runEnginePipeline();
+      },
+
+      loadDemoPalette: () => {
+        const demoSeed = '#8cd3ff'; // low-contrast light blue seed color
+        const newPalette = generatePaletteColors(demoSeed, 'monochromatic', []);
+        set({
+          seedColor: demoSeed,
+          harmonyType: 'monochromatic',
+          palette: newPalette,
+          projectName: 'Demo Color system',
+          projectPurpose: 'Demonstrate WCAG AA contrast failures and auto-fix rules.',
+          reviewStatus: 'Draft',
+        });
         get().runEnginePipeline();
       },
     }),
