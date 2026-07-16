@@ -22,6 +22,10 @@ export interface PaletteStore {
   theme: 'dark' | 'light';
   contrastStandard: 'aa' | 'aaa' | 'apca';
   history: Checkpoint[];
+  projectName: string;
+  projectPurpose: string;
+  reviewStatus: 'Draft' | 'In Review' | 'Approved';
+  projectNotes: string;
   
   // Processed engine outputs
   scoreResult: ScoreResult | null;
@@ -38,6 +42,11 @@ export interface PaletteStore {
   applyRecommendationFix: (rec: Recommendation) => void;
   saveCheckpoint: () => void;
   rollbackToCheckpoint: (id: string) => void;
+  setProjectName: (name: string) => void;
+  setProjectPurpose: (purpose: string) => void;
+  setReviewStatus: (status: 'Draft' | 'In Review' | 'Approved') => void;
+  setProjectNotes: (notes: string) => void;
+  importPaletteColors: (colors: string[]) => void;
   runEnginePipeline: () => void;
 }
 
@@ -83,6 +92,10 @@ export const usePaletteStore = create<PaletteStore>()(
       theme: 'dark',
       contrastStandard: 'aa',
       history: [],
+      projectName: 'Default Workspace Project',
+      projectPurpose: 'Design System palette definitions and compliance checker.',
+      reviewStatus: 'Draft',
+      projectNotes: 'Initial sandbox palette loaded.',
       scoreResult: null,
       recommendations: [],
 
@@ -197,6 +210,30 @@ export const usePaletteStore = create<PaletteStore>()(
           get().runEnginePipeline();
         }
       },
+
+      setProjectName: (projectName) => set({ projectName }),
+      setProjectPurpose: (projectPurpose) => set({ projectPurpose }),
+      setReviewStatus: (reviewStatus) => set({ reviewStatus }),
+      setProjectNotes: (projectNotes) => set({ projectNotes }),
+      
+      importPaletteColors: (colors) => {
+        // Map imported array of hex strings up to 11 slots
+        const newPalette = colors.map((hex, i) => {
+          const isLocked = get().palette[i]?.isLocked ?? false;
+          return { hex: normalizeHex(hex), isLocked };
+        });
+        
+        // If array size matches less than 11, backfill with existing palette colors
+        while (newPalette.length < 11) {
+          const backfillIdx = newPalette.length;
+          newPalette.push(get().palette[backfillIdx] || { hex: '#3b82f6', isLocked: false });
+        }
+
+        // Limit exactly to 11 swatches
+        const finalPalette = newPalette.slice(0, 11);
+        set({ palette: finalPalette, seedColor: finalPalette[5]?.hex || finalPalette[0].hex });
+        get().runEnginePipeline();
+      },
     }),
     {
       name: 'paletteos-store-v1',
@@ -208,6 +245,10 @@ export const usePaletteStore = create<PaletteStore>()(
         theme: state.theme,
         contrastStandard: state.contrastStandard,
         history: state.history,
+        projectName: state.projectName,
+        projectPurpose: state.projectPurpose,
+        reviewStatus: state.reviewStatus,
+        projectNotes: state.projectNotes,
       }),
     }
   )
