@@ -5,6 +5,14 @@ import { calculateOverallScore, SystemPalette, ScoreResult } from '@/engines/sco
 import { evaluateRules, Recommendation } from '@/engines/rules';
 import { normalizeHex } from '@/engines/color/conversions';
 
+export interface Checkpoint {
+  id: string;
+  timestamp: string;
+  seedColor: string;
+  palette: Array<{ hex: string; isLocked: boolean }>;
+  score: number;
+}
+
 export interface PaletteStore {
   // State
   seedColor: string;
@@ -13,6 +21,7 @@ export interface PaletteStore {
   palette: Array<{ hex: string; isLocked: boolean }>;
   theme: 'dark' | 'light';
   contrastStandard: 'aa' | 'aaa' | 'apca';
+  history: Checkpoint[];
   
   // Processed engine outputs
   scoreResult: ScoreResult | null;
@@ -27,6 +36,8 @@ export interface PaletteStore {
   setTheme: (theme: 'dark' | 'light') => void;
   setContrastStandard: (standard: 'aa' | 'aaa' | 'apca') => void;
   applyRecommendationFix: (rec: Recommendation) => void;
+  saveCheckpoint: () => void;
+  rollbackToCheckpoint: (id: string) => void;
   runEnginePipeline: () => void;
 }
 
@@ -71,6 +82,7 @@ export const usePaletteStore = create<PaletteStore>()(
       ],
       theme: 'dark',
       contrastStandard: 'aa',
+      history: [],
       scoreResult: null,
       recommendations: [],
 
@@ -162,6 +174,29 @@ export const usePaletteStore = create<PaletteStore>()(
           updateColor(index, rec.suggestedHex);
         }
       },
+
+      saveCheckpoint: () => {
+        const { palette, seedColor, scoreResult, history } = get();
+        const newCheckpoint: Checkpoint = {
+          id: `chk-${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString(),
+          seedColor,
+          palette: JSON.parse(JSON.stringify(palette)),
+          score: scoreResult?.total ?? 100,
+        };
+        set({ history: [newCheckpoint, ...history] });
+      },
+
+      rollbackToCheckpoint: (id) => {
+        const checkpoint = get().history.find((h) => h.id === id);
+        if (checkpoint) {
+          set({
+            seedColor: checkpoint.seedColor,
+            palette: JSON.parse(JSON.stringify(checkpoint.palette)),
+          });
+          get().runEnginePipeline();
+        }
+      },
     }),
     {
       name: 'paletteos-store-v1',
@@ -172,6 +207,7 @@ export const usePaletteStore = create<PaletteStore>()(
         palette: state.palette,
         theme: state.theme,
         contrastStandard: state.contrastStandard,
+        history: state.history,
       }),
     }
   )

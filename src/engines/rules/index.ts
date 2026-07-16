@@ -128,5 +128,54 @@ export function evaluateRules(palette: SystemPalette): Recommendation[] {
     suggestedHex: oklchToHex(hoverOklch),
   });
 
+  // Rule UI-002: Focus Ring Contrast
+  const focusRatio = getContrastRatio(hoverBrand, bodyBg);
+  if (focusRatio < 3.0) {
+    const suggestedFocus = findSafeLightness(hoverBrand, bodyBg, 3.0);
+    recommendations.push({
+      id: 'UI-002',
+      category: 'ui',
+      title: 'Focus Ring Low Visibility',
+      description: `Interactive focus ring state outline has insufficient contrast (${focusRatio}:1) against background. Target ratio is at least 3.0:1.`,
+      suggestedAction: 'Shift outline lightness in OKLCH to reach visible focus ring.',
+      targetColorHex: hoverBrand,
+      suggestedHex: suggestedFocus,
+    });
+  }
+
+  // Rule UI-003: Disabled Component Contrast
+  const disabledText = palette.primary[1] || '#dbeafe';
+  const disabledBg = palette.primary[0] || '#eff6ff';
+  const disabledRatio = getContrastRatio(disabledText, disabledBg);
+  if (disabledRatio < 1.3 || disabledRatio > 2.5) {
+    const suggestedDisabledText = findSafeLightness(disabledText, disabledBg, 1.8);
+    recommendations.push({
+      id: 'UI-003',
+      category: 'ui',
+      title: 'Disabled State Incoherent Contrast',
+      description: `Disabled text-bg ratio is ${disabledRatio}:1. Target ratio is approximately 1.8:1 for visible but inactive indicators.`,
+      suggestedAction: 'Adjust disabled text lightness value to balance inactive clarity.',
+      targetColorHex: disabledText,
+      suggestedHex: suggestedDisabledText,
+    });
+  }
+
+  // Rule BR-001: Brand Hue Drift Check
+  const seedOklch = hexToOklch(palette.semantic.info);
+  const generatedOklch = hexToOklch(hoverBrand);
+  const hueDiff = Math.abs(seedOklch.h - generatedOklch.h);
+  const shortestHueDiff = hueDiff > 180 ? 360 - hueDiff : hueDiff;
+  if (shortestHueDiff > 5.0) {
+    recommendations.push({
+      id: 'BR-001',
+      category: 'harmony',
+      title: 'Brand Hue Drift Warning',
+      description: `Primary brand shade S6 hue deviates by ${Math.round(shortestHueDiff)}° from seed color input. Preserving hue is key to brand consistency.`,
+      suggestedAction: 'Lock S6 or align lightness curve to maintain target brand hue.',
+      targetColorHex: hoverBrand,
+      suggestedHex: oklchToHex({ ...generatedOklch, h: seedOklch.h }),
+    });
+  }
+
   return recommendations;
 }
