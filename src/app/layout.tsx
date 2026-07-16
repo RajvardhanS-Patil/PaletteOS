@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import Navbar from "@/components/Navbar";
+import CommandPalette from "@/components/CommandPalette";
 
 export default function RootLayout({
   children,
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-sys-bg text-sys-text">
         <Navbar />
         <main className="flex-1 flex flex-col">{children}</main>
+        <CommandPalette />
       </body>
     </html>
   );
