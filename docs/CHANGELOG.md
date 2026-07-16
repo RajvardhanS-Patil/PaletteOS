@@ -4,6 +4,14 @@ All notable changes to the PaletteOS project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-07-17
+
+### Added
+- **Accessibility Auto-Fix Engine**: Built an in-app contrast auto-fixer shifting failing swatches dynamically in OKLCH color space while preserving original hue/chroma values.
+- **Dynamic System Neutrals**: Refactored evaluation pipelines to use dynamic text and background system color sets mapped to the active dark/light mode preference.
+- **Expanded Audit Rules**: Added brand accent contrast verification (CR-002) mapping base swatches S6 against theme backgrounds.
+- **Auto-Fix Dashboard Indicators**: Added side-by-side visual difference swatches and apply action triggers inside the recommendations cards.
+
 ## [1.2.0] - 2026-07-17
 
 ### Added
