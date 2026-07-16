@@ -36,9 +36,16 @@ This is a living document that tracks the active engineering phases during the d
 - [x] Implement dynamic Component Playground contrast verification badges.
 - [x] Build Dashboard category folders and projects list local storage sync.
 
+### Phase 6: Professional Workspace & Developer Tools (Completed)
+- [x] Expand Website Preview Workspace with sized viewports (Desktop/Tablet/Mobile frames).
+- [x] Create universal exporters (SCSS, Flutter, SwiftUI, Jetpack Compose) and file downloaders.
+- [x] Build global Command Palette (`Cmd+K`) dialog and keyboard shortcuts hook.
+- [x] Build in-app Documentation Viewer reading specifications from local workspace folder safely.
+
 ---
 
 ## Change Log & Revision History
+- **v1.2.0**: Command Palette Cmd+K search menu, sized viewport frameworks, universal theme exporters with files downloads, and documentation viewer portal added and compiled.
 - **v1.1.0**: SaaS persistence layer, Screenshot dominant color canvas extractor, interactive component playground contrast badges, and Dashboard folder sync completed and validated.
 - **v1.0.0**: All engines, UI components, Zustand stores, page routing, and Vitest test suites fully implemented, verified, and compiled.
 - **v0.5.0**: Scaffolding initialized, standard dependencies installed, paths absolute aliases verified.

@@ -4,6 +4,14 @@ All notable changes to the PaletteOS project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-07-17
+
+### Added
+- **Command Palette (`Cmd+K`)**: Global command search list matching Radix Dialog triggers, mapping navigation pathways, settings overrides, and direct HEX seeds values sets.
+- **Sized Website Preview Viewports**: Expanded Component Playground with mock sidebar/dashboard layouts and Mobile (375px), Tablet (768px), and Desktop viewport bezel frame modes.
+- **Universal Exporters & Downloads**: Added SCSS, Flutter, SwiftUI, and Jetpack Compose file generators, syntax validations, and direct download blob triggers.
+- **In-App Documentation Viewer**: Server-side file reader rendering workspace specifications `/docs/*.md` safely.
+
 ## [1.1.0] - 2026-07-17
 
 ### Added
