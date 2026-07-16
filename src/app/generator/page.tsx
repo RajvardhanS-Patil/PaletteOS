@@ -6,8 +6,9 @@ import { usePaletteStore } from '@/store/usePaletteStore';
 import { useHydration } from '@/hooks/useHydration';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Lock, Unlock, Eye, RefreshCw } from 'lucide-react';
+import { Lock, Unlock, Eye, RefreshCw, Upload } from 'lucide-react';
 import { hexToOklch } from '@/engines/color/conversions';
+import { extractDominantColors } from '@/engines/image/extractor';
 
 export default function GeneratorPage() {
   const hydrated = useHydration();
@@ -23,6 +24,8 @@ export default function GeneratorPage() {
   } = usePaletteStore();
 
   const [hexInput, setHexInput] = useState(seedColor);
+  const [extractedColors, setExtractedColors] = useState<string[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
 
   useEffect(() => {
     if (hydrated) {
@@ -46,6 +49,25 @@ export default function GeneratorPage() {
     setSeedColor(randomHex);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsExtracting(true);
+    try {
+      const colors = await extractDominantColors(file);
+      setExtractedColors(colors);
+      if (colors[0]) {
+        setHexInput(colors[0]);
+        setSeedColor(colors[0]);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   if (!hydrated) {
     return (
       <div className="flex-1 flex flex-col bg-sys-bg">
@@ -63,7 +85,7 @@ export default function GeneratorPage() {
 
       <div className="flex-1 grid md:grid-cols-[280px_1fr] overflow-hidden">
         {/* Left Side Controls Panel */}
-        <aside className="border-r border-zinc-800 bg-zinc-950 p-6 space-y-6 flex flex-col">
+        <aside className="border-r border-zinc-800 bg-zinc-950 p-6 space-y-6 flex flex-col overflow-y-auto">
           <div className="space-y-2">
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               Seed Brand Color
@@ -101,6 +123,48 @@ export default function GeneratorPage() {
               <option value="triadic">Triadic</option>
               <option value="split-complementary">Split Complementary</option>
             </select>
+          </div>
+
+          {/* Image Analyzer Dropzone */}
+          <div className="space-y-2 border-t border-zinc-800 pt-6">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              Extract from Image
+            </label>
+            <div className="relative group border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-900/10 rounded-md p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors">
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                onChange={handleImageUpload}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                disabled={isExtracting}
+              />
+              <Upload className="h-5 w-5 text-zinc-500 group-hover:text-zinc-300 mb-1" />
+              <span className="text-[10px] text-zinc-400">
+                {isExtracting ? 'Analyzing...' : 'Drop image or click'}
+              </span>
+            </div>
+
+            {extractedColors.length > 0 && (
+              <div className="space-y-2 pt-4">
+                <span className="text-[10px] uppercase font-bold text-zinc-500">
+                  Extracted Swatches
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {extractedColors.map((color, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setHexInput(color);
+                        setSeedColor(color);
+                      }}
+                      className="h-6 w-6 rounded-full border border-black/20 focus-ring cursor-pointer hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      title={`Set seed to ${color}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="mt-auto p-4 rounded-lg border border-zinc-800 bg-zinc-900/40 text-xs text-zinc-400 leading-relaxed">
