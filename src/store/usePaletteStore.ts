@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { generateScale, generateHarmony } from '@/engines/color/analysis';
 import { calculateOverallScore, SystemPalette, ScoreResult } from '@/engines/scoring';
 import { evaluateRules, Recommendation } from '@/engines/rules';
@@ -48,96 +49,111 @@ function generatePaletteColors(
   });
 }
 
-export const usePaletteStore = create<PaletteStore>((set, get) => ({
-  seedColor: '#3b82f6',
-  harmonyType: 'monochromatic',
-  steps: 11,
-  palette: [
-    { hex: '#eff6ff', isLocked: false },
-    { hex: '#dbeafe', isLocked: false },
-    { hex: '#bfdbfe', isLocked: false },
-    { hex: '#93c5fd', isLocked: false },
-    { hex: '#60a5fa', isLocked: false },
-    { hex: '#3b82f6', isLocked: false },
-    { hex: '#2563eb', isLocked: false },
-    { hex: '#1d4ed8', isLocked: false },
-    { hex: '#1e40af', isLocked: false },
-    { hex: '#1e3a8a', isLocked: false },
-    { hex: '#172554', isLocked: false },
-  ],
-  theme: 'dark',
-  contrastStandard: 'aa',
-  scoreResult: null,
-  recommendations: [],
-
-  runEnginePipeline: () => {
-    const { palette, harmonyType, seedColor } = get();
-    const colorsList = palette.map((p) => p.hex);
-
-    // Map system palette keys for scoring calculations
-    const sysPalette: SystemPalette = {
-      primary: colorsList,
-      neutrals: [
-        '#09090b', // fallback dark bg
-        '#18181b', // surface
-        '#f4f4f5', // body text
+export const usePaletteStore = create<PaletteStore>()(
+  persist(
+    (set, get) => ({
+      seedColor: '#3b82f6',
+      harmonyType: 'monochromatic',
+      steps: 11,
+      palette: [
+        { hex: '#eff6ff', isLocked: false },
+        { hex: '#dbeafe', isLocked: false },
+        { hex: '#bfdbfe', isLocked: false },
+        { hex: '#93c5fd', isLocked: false },
+        { hex: '#60a5fa', isLocked: false },
+        { hex: '#3b82f6', isLocked: false },
+        { hex: '#2563eb', isLocked: false },
+        { hex: '#1d4ed8', isLocked: false },
+        { hex: '#1e40af', isLocked: false },
+        { hex: '#1e3a8a', isLocked: false },
+        { hex: '#172554', isLocked: false },
       ],
-      semantic: {
-        success: colorsList[2] || '#22c55e',
-        warning: colorsList[4] || '#eab308',
-        error: colorsList[8] || '#ef4444',
-        info: seedColor,
+      theme: 'dark',
+      contrastStandard: 'aa',
+      scoreResult: null,
+      recommendations: [],
+
+      runEnginePipeline: () => {
+        const { palette, harmonyType, seedColor } = get();
+        const colorsList = palette.map((p) => p.hex);
+
+        // Map system palette keys for scoring calculations
+        const sysPalette: SystemPalette = {
+          primary: colorsList,
+          neutrals: [
+            '#09090b', // fallback dark bg
+            '#18181b', // surface
+            '#f4f4f5', // body text
+          ],
+          semantic: {
+            success: colorsList[2] || '#22c55e',
+            warning: colorsList[4] || '#eab308',
+            error: colorsList[8] || '#ef4444',
+            info: seedColor,
+          },
+          harmonyType,
+        };
+
+        const scoreResult = calculateOverallScore(sysPalette);
+        const recommendations = evaluateRules(sysPalette);
+
+        set({ scoreResult, recommendations });
       },
-      harmonyType,
-    };
 
-    const scoreResult = calculateOverallScore(sysPalette);
-    const recommendations = evaluateRules(sysPalette);
+      setSeedColor: (color) => {
+        try {
+          const cleanHex = normalizeHex(color);
+          const newPalette = generatePaletteColors(cleanHex, get().harmonyType, get().palette);
+          set({ seedColor: cleanHex, palette: newPalette });
+          get().runEnginePipeline();
+        } catch {
+          // Invalid hex input - don't crash store, let validator catch it in form input
+        }
+      },
 
-    set({ scoreResult, recommendations });
-  },
-
-  setSeedColor: (color) => {
-    try {
-      const cleanHex = normalizeHex(color);
-      const newPalette = generatePaletteColors(cleanHex, get().harmonyType, get().palette);
-      set({ seedColor: cleanHex, palette: newPalette });
-      get().runEnginePipeline();
-    } catch {
-      // Invalid hex input - don't crash store, let validator catch it in form input
-    }
-  },
-
-  setHarmonyType: (type) => {
-    const newPalette = generatePaletteColors(get().seedColor, type, get().palette);
-    set({ harmonyType: type, palette: newPalette });
-    get().runEnginePipeline();
-  },
-
-  setSteps: (steps) => set({ steps }),
-
-  toggleLock: (index) => {
-    const newPalette = [...get().palette];
-    if (newPalette[index]) {
-      newPalette[index].isLocked = !newPalette[index].isLocked;
-      set({ palette: newPalette });
-    }
-  },
-
-  updateColor: (index, newHex) => {
-    try {
-      const cleanHex = normalizeHex(newHex);
-      const newPalette = [...get().palette];
-      if (newPalette[index]) {
-        newPalette[index].hex = cleanHex;
-        set({ palette: newPalette });
+      setHarmonyType: (type) => {
+        const newPalette = generatePaletteColors(get().seedColor, type, get().palette);
+        set({ harmonyType: type, palette: newPalette });
         get().runEnginePipeline();
-      }
-    } catch {
-      // Ignore intermediate typing transitions
-    }
-  },
+      },
 
-  setTheme: (theme) => set({ theme }),
-  setContrastStandard: (standard) => set({ contrastStandard: standard }),
-}));
+      setSteps: (steps) => set({ steps }),
+
+      toggleLock: (index) => {
+        const newPalette = [...get().palette];
+        if (newPalette[index]) {
+          newPalette[index].isLocked = !newPalette[index].isLocked;
+          set({ palette: newPalette });
+        }
+      },
+
+      updateColor: (index, newHex) => {
+        try {
+          const cleanHex = normalizeHex(newHex);
+          const newPalette = [...get().palette];
+          if (newPalette[index]) {
+            newPalette[index].hex = cleanHex;
+            set({ palette: newPalette });
+            get().runEnginePipeline();
+          }
+        } catch {
+          // Ignore intermediate typing transitions
+        }
+      },
+
+      setTheme: (theme) => set({ theme }),
+      setContrastStandard: (standard) => set({ contrastStandard: standard }),
+    }),
+    {
+      name: 'paletteos-store-v1',
+      partialize: (state) => ({
+        seedColor: state.seedColor,
+        harmonyType: state.harmonyType,
+        steps: state.steps,
+        palette: state.palette,
+        theme: state.theme,
+        contrastStandard: state.contrastStandard,
+      }),
+    }
+  )
+);

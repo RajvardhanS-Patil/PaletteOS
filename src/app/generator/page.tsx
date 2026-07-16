@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import WorkspaceTabs from '@/components/WorkspaceTabs';
 import { usePaletteStore } from '@/store/usePaletteStore';
+import { useHydration } from '@/hooks/useHydration';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Lock, Unlock, Eye, RefreshCw } from 'lucide-react';
 import { hexToOklch } from '@/engines/color/conversions';
 
 export default function GeneratorPage() {
+  const hydrated = useHydration();
   const {
     seedColor,
     harmonyType,
@@ -21,6 +23,12 @@ export default function GeneratorPage() {
   } = usePaletteStore();
 
   const [hexInput, setHexInput] = useState(seedColor);
+
+  useEffect(() => {
+    if (hydrated) {
+      setHexInput(seedColor);
+    }
+  }, [hydrated, seedColor]);
 
   useEffect(() => {
     runEnginePipeline();
@@ -37,6 +45,17 @@ export default function GeneratorPage() {
     setHexInput(randomHex);
     setSeedColor(randomHex);
   };
+
+  if (!hydrated) {
+    return (
+      <div className="flex-1 flex flex-col bg-sys-bg">
+        <WorkspaceTabs />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-zinc-500 font-mono text-sm animate-pulse">Loading Workspace...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-sys-bg">

@@ -3,13 +3,26 @@
 import { useState } from 'react';
 import WorkspaceTabs from '@/components/WorkspaceTabs';
 import { usePaletteStore } from '@/store/usePaletteStore';
+import { useHydration } from '@/hooks/useHydration';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Check, Copy } from 'lucide-react';
 
 export default function ExportPage() {
+  const hydrated = useHydration();
   const { palette, seedColor } = usePaletteStore();
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
+
+  if (!hydrated) {
+    return (
+      <div className="flex-1 flex flex-col bg-sys-bg">
+        <WorkspaceTabs />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-zinc-500 font-mono text-sm animate-pulse">Loading Exporter...</div>
+        </div>
+      </div>
+    );
+  }
 
   const colors = palette.map((p) => p.hex);
 

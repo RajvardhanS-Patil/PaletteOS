@@ -1,12 +1,22 @@
 'use client';
 
 import { usePaletteStore } from '@/store/usePaletteStore';
+import { useHydration } from '@/hooks/useHydration';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Sparkles, Eye, ShieldCheck, Heart } from 'lucide-react';
 
 export default function SettingsPage() {
+  const hydrated = useHydration();
   const { contrastStandard, setContrastStandard } = usePaletteStore();
+
+  if (!hydrated) {
+    return (
+      <div className="flex-1 bg-sys-bg p-8 max-w-3xl w-full mx-auto flex items-center justify-center">
+        <div className="text-zinc-500 font-mono text-sm animate-pulse">Loading Settings...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-sys-bg p-8 max-w-3xl w-full mx-auto space-y-8 overflow-y-auto">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import WorkspaceTabs from '@/components/WorkspaceTabs';
 import { usePaletteStore } from '@/store/usePaletteStore';
+import { useHydration } from '@/hooks/useHydration';
 import { getContrastMatrix, ContrastMatrixNode } from '@/engines/accessibility/contrast';
 import { simulatePaletteCVD, CVDType } from '@/engines/accessibility/simulator';
 import { Badge } from '@/components/ui/Badge';
@@ -10,22 +11,41 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { AlertCircle, CheckCircle, ShieldAlert } from 'lucide-react';
 
 export default function AnalyzerPage() {
+  const hydrated = useHydration();
   const { palette, scoreResult, recommendations, runEnginePipeline } = usePaletteStore();
   const [cvdMode, setCvdMode] = useState<CVDType | 'none'>('none');
-  const [colors, setColors] = useState<string[]>(palette.map((p) => p.hex));
+  const [colors, setColors] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (hydrated) {
+      setColors(palette.map((p) => p.hex));
+    }
+  }, [hydrated, palette]);
 
   useEffect(() => {
     runEnginePipeline();
   }, [runEnginePipeline]);
 
   useEffect(() => {
+    if (!hydrated) return;
     const rawColors = palette.map((p) => p.hex);
     if (cvdMode === 'none') {
       setColors(rawColors);
     } else {
       setColors(simulatePaletteCVD(rawColors, cvdMode));
     }
-  }, [palette, cvdMode]);
+  }, [hydrated, palette, cvdMode]);
+
+  if (!hydrated) {
+    return (
+      <div className="flex-1 flex flex-col bg-sys-bg">
+        <WorkspaceTabs />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-zinc-500 font-mono text-sm animate-pulse">Loading Analyzer...</div>
+        </div>
+      </div>
+    );
+  }
 
   const matrix = getContrastMatrix(colors);
 
