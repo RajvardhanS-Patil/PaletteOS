@@ -12,7 +12,7 @@ import { AlertCircle, CheckCircle, ShieldAlert } from 'lucide-react';
 
 export default function AnalyzerPage() {
   const hydrated = useHydration();
-  const { palette, scoreResult, recommendations, runEnginePipeline, applyRecommendation } = usePaletteStore();
+  const { palette, scoreResult, recommendations, applyRecommendationFix, runEnginePipeline } = usePaletteStore();
   const [cvdMode, setCvdMode] = useState<CVDType | 'none'>('none');
   const [colors, setColors] = useState<string[]>([]);
 
@@ -60,13 +60,13 @@ export default function AnalyzerPage() {
       <WorkspaceTabs />
 
       <main className="flex-1 p-8 space-y-8 max-w-7xl w-full mx-auto overflow-y-auto">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-100 select-none">
           Accessibility Compliance Dashboard
         </h1>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Global Score Card */}
-          <Card className="border-zinc-800 bg-zinc-950 flex flex-col justify-between">
+          <Card className="border-zinc-800 bg-zinc-950 flex flex-col justify-between select-none">
             <CardHeader>
               <CardTitle>Palette Health Score</CardTitle>
               <CardDescription>
@@ -89,8 +89,8 @@ export default function AnalyzerPage() {
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                    <span className="text-amber-500">Remediation Suggested</span>
+                    <AlertCircle className="h-4 w-4 text-amber-500 animate-pulse" />
+                    <span className="text-amber-500 font-bold">Remediation Suggested</span>
                   </>
                 )}
               </div>
@@ -99,7 +99,7 @@ export default function AnalyzerPage() {
 
           {/* Recommendations / Deductions */}
           <Card className="md:col-span-2 border-zinc-800 bg-zinc-950">
-            <CardHeader>
+            <CardHeader className="select-none">
               <CardTitle>Intelligent Recommendations</CardTitle>
               <CardDescription>
                 Deterministic rule engine auditing checks and suggesting fixes.
@@ -107,41 +107,59 @@ export default function AnalyzerPage() {
             </CardHeader>
             <CardContent className="space-y-4 max-h-[220px] overflow-y-auto pr-2">
               {recommendations.length === 0 ? (
-                <div className="flex items-center gap-3 text-sm text-zinc-400 py-6">
+                <div className="flex items-center gap-3 text-sm text-zinc-400 py-6 select-none">
                   <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
                   Your color palette is mathematically robust under all evaluation parameters.
                 </div>
               ) : (
-                recommendations.map((rec) => (
-                  <div
-                    key={rec.id}
-                    className="p-3.5 rounded-md border border-zinc-800 bg-zinc-900/40 text-xs flex justify-between items-start gap-4"
-                  >
-                    <div>
-                      <div className="font-semibold text-zinc-300 flex items-center gap-1.5">
-                        <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
-                        {rec.title}
+                recommendations.map((rec) => {
+                  const canFix = palette.some(
+                    (p) => p.hex.toLowerCase() === rec.targetColorHex.toLowerCase()
+                  );
+                  return (
+                    <div
+                      key={rec.id}
+                      className="p-3.5 rounded-md border border-zinc-800 bg-zinc-900/40 text-xs flex justify-between items-center gap-4"
+                    >
+                      <div>
+                        <div className="font-semibold text-zinc-300 flex items-center gap-1.5 select-none">
+                          <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                          {rec.title}
+                        </div>
+                        <div className="text-zinc-500 mt-1 select-none">{rec.description}</div>
                       </div>
-                      <div className="text-zinc-500 mt-1">{rec.description}</div>
+                      
+                      {rec.suggestedHex && (
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="flex flex-col items-center gap-1 bg-zinc-950 p-2 rounded border border-zinc-800">
+                            <span className="text-[9px] text-zinc-500 uppercase font-mono">Shift Fix</span>
+                            <div className="flex items-center gap-1.5">
+                              <div
+                                className="h-3.5 w-3.5 rounded-full border border-black/20"
+                                style={{ backgroundColor: rec.targetColorHex }}
+                                title={`Original: ${rec.targetColorHex}`}
+                              />
+                              <span className="text-zinc-500">→</span>
+                              <div
+                                className="h-3.5 w-3.5 rounded-full border border-black/20"
+                                style={{ backgroundColor: rec.suggestedHex }}
+                                title={`Suggested: ${rec.suggestedHex}`}
+                              />
+                            </div>
+                            {canFix && (
+                              <button
+                                onClick={() => applyRecommendationFix(rec)}
+                                className="mt-1 text-[9px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded cursor-pointer font-bold transition-colors"
+                              >
+                                Apply Fix
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {rec.suggestedHex && (
-                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <button
-                          onClick={() => applyRecommendation(rec)}
-                          className="font-mono bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 px-2 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer focus-ring select-none uppercase border border-brand-primary/20"
-                          title="Apply this recommendation automatically"
-                        >
-                          Apply Fix
-                        </button>
-                        <div
-                          className="h-3.5 w-8 rounded border border-black/10 animate-pulse"
-                          style={{ backgroundColor: rec.suggestedHex }}
-                          title={`Suggested Fix: ${rec.suggestedHex}`}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
             </CardContent>
           </Card>

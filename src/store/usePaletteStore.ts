@@ -26,8 +26,8 @@ export interface PaletteStore {
   updateColor: (index: number, newHex: string) => void;
   setTheme: (theme: 'dark' | 'light') => void;
   setContrastStandard: (standard: 'aa' | 'aaa' | 'apca') => void;
+  applyRecommendationFix: (rec: Recommendation) => void;
   runEnginePipeline: () => void;
-  applyRecommendation: (rec: Recommendation) => void;
 }
 
 function generatePaletteColors(
@@ -75,17 +75,16 @@ export const usePaletteStore = create<PaletteStore>()(
       recommendations: [],
 
       runEnginePipeline: () => {
-        const { palette, harmonyType, seedColor } = get();
+        const { palette, harmonyType, seedColor, theme } = get();
         const colorsList = palette.map((p) => p.hex);
 
-        // Map system palette keys for scoring calculations
+        // Map system palette keys dynamically based on active theme
         const sysPalette: SystemPalette = {
           primary: colorsList,
-          neutrals: [
-            '#09090b', // fallback dark bg
-            '#18181b', // surface
-            '#f4f4f5', // body text
-          ],
+          neutrals:
+            theme === 'dark'
+              ? ['#09090b', '#18181b', '#f4f4f5'] // bg, surface, text
+              : ['#f9f9fb', '#ffffff', '#18181b'],
           semantic: {
             success: colorsList[2] || '#22c55e',
             warning: colorsList[4] || '#eab308',
@@ -142,22 +141,25 @@ export const usePaletteStore = create<PaletteStore>()(
         }
       },
 
-      setTheme: (theme) => set({ theme }),
-      setContrastStandard: (standard) => set({ contrastStandard: standard }),
+      setTheme: (theme) => {
+        set({ theme });
+        get().runEnginePipeline();
+      },
 
-      applyRecommendation: (rec) => {
-        // 1. If target matches seedColor
-        if (get().seedColor.toLowerCase() === rec.targetColorHex.toLowerCase()) {
-          get().setSeedColor(rec.suggestedHex);
-          return;
-        }
+      setContrastStandard: (standard) => {
+        set({ contrastStandard: standard });
+        get().runEnginePipeline();
+      },
 
-        // 2. Or search inside palette
-        const index = get().palette.findIndex(
-          (p) => p.hex.toLowerCase() === rec.targetColorHex.toLowerCase()
-        );
-        if (index !== -1) {
-          get().updateColor(index, rec.suggestedHex);
+      applyRecommendationFix: (rec) => {
+        const { palette, updateColor } = get();
+        const colorsList = palette.map((p) => p.hex.toLowerCase());
+        const targetHex = rec.targetColorHex.toLowerCase();
+        
+        // Find if target color matches any swatch in palette
+        const index = colorsList.indexOf(targetHex);
+        if (index >= 0) {
+          updateColor(index, rec.suggestedHex);
         }
       },
     }),

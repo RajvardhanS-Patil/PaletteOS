@@ -68,6 +68,23 @@ export function evaluateRules(palette: SystemPalette): Recommendation[] {
     });
   }
 
+  // Rule CR-002: Primary Brand Accent Contrast
+  const primaryBrand = palette.primary[5] || '#3b82f6';
+  const primaryBgRatio = getContrastRatio(primaryBrand, bodyBg);
+
+  if (primaryBgRatio < 4.5) {
+    const suggestedBrand = findSafeLightness(primaryBrand, bodyBg, 4.5);
+    recommendations.push({
+      id: 'CR-002',
+      category: 'contrast',
+      title: 'Failing Accent Brand Contrast',
+      description: `Primary Brand Accent (S6) contrast against background is failing (${primaryBgRatio}:1). Minimum WCAG AA compliance requires at least 4.5:1.`,
+      suggestedAction: 'Shift base brand lightness in OKLCH to reach compliant contrast.',
+      targetColorHex: primaryBrand,
+      suggestedHex: suggestedBrand,
+    });
+  }
+
   // Rule CVD-001: Red/Green confusion under Deuteranopia
   const redSim = simulateCVD(palette.semantic.error, 'deuteranopia');
   const greenSim = simulateCVD(palette.semantic.success, 'deuteranopia');
@@ -96,8 +113,8 @@ export function evaluateRules(palette: SystemPalette): Recommendation[] {
   }
 
   // Rule UI-001: Primary Button Hover Generator
-  const primaryBrand = palette.primary[5] || '#3b82f6';
-  const brandOklch = hexToOklch(primaryBrand);
+  const hoverBrand = palette.primary[5] || '#3b82f6';
+  const brandOklch = hexToOklch(hoverBrand);
   const hoverL = brandOklch.l > 0.5 ? brandOklch.l - 0.08 : brandOklch.l + 0.08;
   const hoverOklch: OKLCH = { ...brandOklch, l: hoverL };
 
@@ -107,7 +124,7 @@ export function evaluateRules(palette: SystemPalette): Recommendation[] {
     title: 'Button Hover State Suggestion',
     description: 'Provide an interactive hover state colors modifier for buttons.',
     suggestedAction: 'Generate a matching hover swatch automatically by shifting base lightness.',
-    targetColorHex: primaryBrand,
+    targetColorHex: hoverBrand,
     suggestedHex: oklchToHex(hoverOklch),
   });
 
