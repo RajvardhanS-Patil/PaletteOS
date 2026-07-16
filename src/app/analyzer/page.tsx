@@ -12,7 +12,7 @@ import { AlertCircle, CheckCircle, ShieldAlert } from 'lucide-react';
 
 export default function AnalyzerPage() {
   const hydrated = useHydration();
-  const { palette, scoreResult, recommendations, runEnginePipeline } = usePaletteStore();
+  const { palette, scoreResult, recommendations, runEnginePipeline, applyRecommendation } = usePaletteStore();
   const [cvdMode, setCvdMode] = useState<CVDType | 'none'>('none');
   const [colors, setColors] = useState<string[]>([]);
 
@@ -126,12 +126,17 @@ export default function AnalyzerPage() {
                     </div>
                     {rec.suggestedHex && (
                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <div className="font-mono bg-zinc-800 px-2 py-0.5 rounded text-zinc-300 border border-zinc-700 uppercase">
-                          Fix: {rec.suggestedHex}
-                        </div>
+                        <button
+                          onClick={() => applyRecommendation(rec)}
+                          className="font-mono bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 px-2 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer focus-ring select-none uppercase border border-brand-primary/20"
+                          title="Apply this recommendation automatically"
+                        >
+                          Apply Fix
+                        </button>
                         <div
-                          className="h-3.5 w-8 rounded border border-black/10"
+                          className="h-3.5 w-8 rounded border border-black/10 animate-pulse"
                           style={{ backgroundColor: rec.suggestedHex }}
+                          title={`Suggested Fix: ${rec.suggestedHex}`}
                         />
                       </div>
                     )}

@@ -27,6 +27,7 @@ export interface PaletteStore {
   setTheme: (theme: 'dark' | 'light') => void;
   setContrastStandard: (standard: 'aa' | 'aaa' | 'apca') => void;
   runEnginePipeline: () => void;
+  applyRecommendation: (rec: Recommendation) => void;
 }
 
 function generatePaletteColors(
@@ -143,6 +144,22 @@ export const usePaletteStore = create<PaletteStore>()(
 
       setTheme: (theme) => set({ theme }),
       setContrastStandard: (standard) => set({ contrastStandard: standard }),
+
+      applyRecommendation: (rec) => {
+        // 1. If target matches seedColor
+        if (get().seedColor.toLowerCase() === rec.targetColorHex.toLowerCase()) {
+          get().setSeedColor(rec.suggestedHex);
+          return;
+        }
+
+        // 2. Or search inside palette
+        const index = get().palette.findIndex(
+          (p) => p.hex.toLowerCase() === rec.targetColorHex.toLowerCase()
+        );
+        if (index !== -1) {
+          get().updateColor(index, rec.suggestedHex);
+        }
+      },
     }),
     {
       name: 'paletteos-store-v1',
