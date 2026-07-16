@@ -4,6 +4,14 @@ All notable changes to the PaletteOS project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0-rc1] - 2026-07-17
+
+### Added
+- **Production-Ready Landing Page**: Fully detailed home hero presentation, FAQ listing, and feature cards layout grid.
+- **Built-in Demo Workspace Mode**: Action button triggering poor-contrast monochromatic blue seeds checking the scoring engine failures in real-time.
+- **Onboarding Guides**: Added quick tour panels in sidebars listing key keyboard shortcuts and workspace tips.
+- **Open-source templates**: Created MIT License and CONTRIBUTING procedures.
+
 ## [1.5.0] - 2026-07-17
 
 ### Added
