@@ -21,6 +21,7 @@ export default function GeneratorPage() {
     toggleLock,
     updateColor,
     loadDemoPalette,
+    importPaletteColors,
     runEnginePipeline,
   } = usePaletteStore();
 
@@ -57,9 +58,11 @@ export default function GeneratorPage() {
     try {
       const colors = await extractDominantColors(file);
       setExtractedColors(colors);
-      if (colors[0]) {
-        setHexInput(colors[0]);
-        setSeedColor(colors[0]);
+      if (colors.length > 0) {
+        importPaletteColors(colors);
+        if (colors[0]) {
+          setHexInput(colors[0]);
+        }
       }
     } catch (err) {
       console.error(err);
