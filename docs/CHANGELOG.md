@@ -4,6 +4,14 @@ All notable changes to the PaletteOS project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-07-17
+
+### Added
+- **Design System Auditing & Brand Consistency**: Added polar coordinate hue drift detection (BR-001), focus state visibility audits (UI-002), and disabled states balance audits (UI-003).
+- **Interactive tabbed Analyzer layout**: Replaced page layout with 4 responsive workspace view tabs.
+- **Version history comparisons**: Added save checkpoint actions to history logs, delta visualizer, and rollback restore functions.
+- **Printable Audit Reports**: Created styled print-ready HTML/PDF summaries hiding navigation side-menus automatically when printing.
+
 ## [1.3.0] - 2026-07-17
 
 ### Added
