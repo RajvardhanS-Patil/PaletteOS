@@ -94,16 +94,29 @@ export default function GeneratorPage() {
               Seed Brand Color
             </label>
             <div className="flex gap-2">
+              <div className="relative h-10 w-10 shrink-0 border border-zinc-800 rounded-md overflow-hidden bg-zinc-900 focus-within:ring-2 focus-within:ring-zinc-700">
+                <input
+                  type="color"
+                  value={hexInput}
+                  onChange={handleSeedChange}
+                  className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0"
+                  title="Choose Color Visually"
+                />
+                <div
+                  className="w-full h-full pointer-events-none"
+                  style={{ backgroundColor: hexInput }}
+                />
+              </div>
               <Input
                 value={hexInput}
                 onChange={handleSeedChange}
                 placeholder="#3B82F6"
-                className="font-mono text-center uppercase"
+                className="font-mono text-center uppercase flex-1"
                 maxLength={7}
               />
               <button
                 onClick={randomizePalette}
-                className="h-10 w-10 border border-zinc-800 hover:bg-zinc-900 rounded-md flex items-center justify-center text-zinc-400 hover:text-zinc-100 cursor-pointer focus-ring"
+                className="h-10 w-10 border border-zinc-800 hover:bg-zinc-900 rounded-md flex items-center justify-center text-zinc-400 hover:text-zinc-100 cursor-pointer focus-ring shrink-0"
                 title="Randomize Seed"
               >
                 <RefreshCw className="h-4 w-4" />
